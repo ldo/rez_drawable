@@ -6,9 +6,9 @@
 #
 #     rez_drawable --dp=size [--projdir=projdir] [--subdirfmt=subdirfmt] [--outname=basename] infile
 #
-# where infile is the graphics file to be converted, size is the dimensions
-# in Android “dp” units (1/160 inch nominal) of the input graphic (which
-# must be square), projdir is the project directory (defaults to the current
+# where infile is the graphics file to be converted (the image must be square),
+# size is the dimensions in Android “dp” units (1/160 inch nominal) of the
+# converted output, projdir is the project directory (defaults to the current
 # directory), subdirfmt is the format string used to generate the appropriate
 # drawable subdirectory names (defaults to “drawable-%s”), and basename is the
 # name for the converted graphics files (defaults to the basename of infile).
@@ -62,13 +62,13 @@ if len(args) != 1 :
     raise getopt.GetoptError("need exactly one arg, the input graphics file")
 #end if
 infile = args[0]
-infiledp = None
+outdp = None
 projdir = "."
 subdirfmt = "drawable-%s"
 basename = os.path.splitext(os.path.basename(infile))[0] + outext
 for keyword, value in opts :
     if keyword == "--dp" :
-        infiledp = int(value)
+        outdp = int(value)
     elif keyword == "--projdir" :
         projdir = value
     elif keyword == "--outname" :
@@ -80,7 +80,7 @@ for keyword, value in opts :
         subdirfmt = value
     #end if
 #end for
-if infiledp == None :
+if outdp == None :
     raise getopt.GetoptError("missing --dp value")
 #end if
 if not os.path.isfile(infile) :
@@ -99,7 +99,7 @@ if insize[0] != insize[1] :
 for density in densities :
     outdir = os.path.join(projdir, "res", subdirfmt % density["suffix"])
     if os.path.isdir(outdir) :
-        outsize = round(density["dpi"] / dppi * infiledp)
+        outsize = round(density["dpi"] / dppi * outdp)
         args = ("convert", infile, "-resize", "%dx%d" % (outsize, outsize), os.path.join(outdir, basename))
         sys.stderr.write(" ".join(args) + "\n") # debug
         subprocess.check_call(args = args)

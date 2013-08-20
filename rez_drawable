@@ -1,0 +1,107 @@
+#!/usr/bin/python3
+#+
+# This script converts graphics into PNG format at various resolutions
+# appropriate to different pixel densities on Android devices. Invoke it
+# as follows:
+#
+#     rez_drawable --dp=size [--projdir=projdir] [--subdirfmt=subdirfmt] [--outname=basename] infile
+#
+# where infile is the graphics file to be converted, size is the dimensions
+# in Android “dp” units (1/160 inch nominal) of the input graphic (which
+# must be square), projdir is the project directory (defaults to the current
+# directory), subdirfmt is the format string used to generate the appropriate
+# drawable subdirectory names (defaults to “drawable-%s”), and basename is the
+# name for the converted graphics files (defaults to the basename of infile).
+#
+# The project directory must have a “res” subdirectory in it, as standard for
+# an Android project. This is scanned for drawable-xxx subdirectories matching
+# the specified subdirfmt, where an occurrence of %s is substituted with the
+# appropriate dpi suffix. For more details on the proper naming of these
+# subdirectories, see
+# <http://developer.android.com/guide/topics/resources/providing-resources.html#AlternativeResources>
+# Within each subdirectory found, a file is created (or replaced) with the
+# name basename, containing the converted graphic at the appropriate pixel
+# density.
+#
+# For an application icon, the size value passed to --dp should be 48.
+#
+# This script relies on the “convert” and “identify” commands, part of the
+# ImageMagick/GraphicsMagick package.
+#-
+
+import sys
+import os
+import subprocess
+import re
+import getopt
+
+dppi = 160 # Android “dp”/“dip” units are nominally 1/160 inch
+
+densities = \
+    ( # recognized resource subdirectory name components for various pixel densities
+        {"suffix" : "ldpi", "dpi" : 120},
+        {"suffix" : "mdpi", "dpi" : 160},
+        {"suffix" : "hdpi", "dpi" : 240},
+        {"suffix" : "xhdpi", "dpi" : 320},
+        {"suffix" : "xxhdpi", "dpi" : 480},
+    )
+
+outext = ".png"
+
+#+
+# Mainline
+#-
+
+opts, args = getopt.getopt \
+  (
+    sys.argv[1:],
+    "",
+    ["dp=", "outname=", "projdir=", "subdirfmt="],
+  )
+if len(args) != 1 :
+    raise getopt.GetoptError("need exactly one arg, the input graphics file")
+#end if
+infile = args[0]
+infiledp = None
+projdir = "."
+subdirfmt = "drawable-%s"
+basename = os.path.splitext(os.path.basename(infile))[0] + outext
+for keyword, value in opts :
+    if keyword == "--dp" :
+        infiledp = int(value)
+    elif keyword == "--projdir" :
+        projdir = value
+    elif keyword == "--outname" :
+        basename = value
+        if os.path.splitext(basename)[1] != outext :
+            raise  getopt.GetoptError("--outname extension must be %s" % outext)
+        #end if
+    elif keyword == "--subdirfmt" :
+        subdirfmt = value
+    #end if
+#end for
+if infiledp == None :
+    raise getopt.GetoptError("missing --dp value")
+#end if
+if not os.path.isfile(infile) :
+    raise getopt.GetoptError("input file “%s” does not exist" % infile)
+#end if
+details = subprocess.check_output \
+  (
+    args = ("identify", infile),
+  ).decode("utf-8")
+insize = re.search(r"(\d+)x(\d+)", details)
+insize = (int(insize.group(1)), int(insize.group(2)))
+sys.stderr.write("Input size = %d by %d\n" % insize) # debug
+if insize[0] != insize[1] :
+    raise RuntimeError("input %d*%d image is not square" % insize)
+#end if
+for density in densities :
+    outdir = os.path.join(projdir, "res", subdirfmt % density["suffix"])
+    if os.path.isdir(outdir) :
+        outsize = round(density["dpi"] / dppi * infiledp)
+        args = ("convert", infile, "-resize", "%dx%d" % (outsize, outsize), os.path.join(outdir, basename))
+        sys.stderr.write(" ".join(args) + "\n") # debug
+        subprocess.check_call(args = args)
+    #end if
+#end for

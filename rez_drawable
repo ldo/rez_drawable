@@ -108,7 +108,7 @@ details = subprocess.check_output \
   (
     args = ("identify", infile),
   ).decode("utf-8")
-insize = re.search(r"(\d+)x(\d+)", details)
+insize = re.search(r"(\d+)x(\d+)", details) # hopefully this won't be fooled by strange filenames...
 insize = (int(insize.group(1)), int(insize.group(2)))
 sys.stderr.write("Input size = %d by %d\n" % insize) # debug
 if insize[0] != insize[1] :

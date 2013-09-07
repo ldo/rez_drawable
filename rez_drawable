@@ -25,6 +25,24 @@
 #
 # For an application icon, the size value passed to --dp should be 48.
 #
+# For example, the following command
+#
+#     rez_drawable --dp=48 --projdir=myproj app_icon.png
+#
+# will look in myproj/res for drawable-* subdirectories. Supposing the following
+# directories exist:
+#
+#     myproj/res/drawable-mdpi
+#     myproj/res/drawable-hdpi
+#     myproj/res/drawable-xhdpi
+#
+# then it will convert app_icon.png to generate the following files at the
+# corresponding sizes:
+#
+#     myproj/res/drawable-mdpi/app_icon.png at 48×48 pixels
+#     myproj/res/drawable-hdpi/app_icon.png at 72×72 pixels
+#     myproj/res/drawable-xhdpi/app_icon.png at 96×96 pixels
+#
 # This script relies on the “convert” and “identify” commands, part of the
 # ImageMagick/GraphicsMagick package.
 #-

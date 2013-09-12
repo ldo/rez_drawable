@@ -96,6 +96,31 @@ for keyword, value in opts :
         #end if
     elif keyword == "--subdirfmt" :
         subdirfmt = value
+        index = 0
+        seen_fmt = 0
+        valid = True
+        while True :
+            if index == len(subdirfmt) :
+                break
+            nextindex = subdirfmt.find("%", index)
+            if nextindex < 0 :
+                break
+            if nextindex == len(subdirfmt) - 1 :
+                valid = False
+                break
+            #end if
+            fmtchar = subdirfmt[nextindex + 1]
+            if fmtchar == "s" :
+                seen_fmt += 1
+            elif fmtchar != "%" : # only literal “%”, no other format specifiers allowed
+                valid = False
+                break
+            #end if
+            index = nextindex + 2
+        #end while
+        if not valid or seen_fmt != 1 :
+            raise getopt.GetoptError("invalid subdirfmt “%s”" % subdirfmt)
+        #end if
     #end if
 #end for
 if outdp == None :

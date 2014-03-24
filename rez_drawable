@@ -143,7 +143,7 @@ for density in densities :
     outdir = os.path.join(projdir, "res", subdirfmt % density["suffix"])
     if os.path.isdir(outdir) :
         outsize = round(density["dpi"] / dppi * outdp)
-        args = ("convert", infile, "-resize", "%dx%d" % (outsize, outsize), os.path.join(outdir, basename))
+        args = ("convert", infile, "-colorspace", "sRGB", "-set", "colorspace", "RGB", "-resize", "%dx%d" % (outsize, outsize), os.path.join(outdir, basename))
         sys.stderr.write(" ".join(args) + "\n") # debug
         subprocess.check_call(args = args)
     #end if

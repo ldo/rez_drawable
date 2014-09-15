@@ -45,6 +45,10 @@
 #
 # This script relies on the “convert” and “identify” commands, part of the
 # ImageMagick/GraphicsMagick package.
+#
+# Copyright 2013, 2014 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+# Licensed under Creative Commons CC0
+# <https://creativecommons.org/publicdomain/zero/1.0/>.
 #-
 
 import sys
